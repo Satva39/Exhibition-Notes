@@ -27,15 +27,15 @@ app = Flask(__name__)
 
 app.config.from_object(Config)
 
-os.makedirs(
-    app.config["UPLOAD_FOLDER"],
-    exist_ok=True
-)
+# os.makedirs(
+#     app.config["UPLOAD_FOLDER"],
+#     exist_ok=True
+# )
 
 db.init_app(app)
 
-with app.app_context():
-    db.create_all()
+# with app.app_context():
+#     db.create_all()
 
 
 ALLOWED_EXTENSIONS = {
