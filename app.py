@@ -7,14 +7,12 @@ from flask import (
     flash
 )
 
+import os
 import uuid
 
 from werkzeug.utils import secure_filename
 
-import os
-
 from config import Config
-
 from models import (
     db,
     Company,
@@ -23,20 +21,28 @@ from models import (
     Photo
 )
 
+# --------------------------------------------------
+# App Configuration
+# --------------------------------------------------
+
 app = Flask(__name__)
-
 app.config.from_object(Config)
-
-# os.makedirs(
-#     app.config["UPLOAD_FOLDER"],
-#     exist_ok=True
-# )
 
 db.init_app(app)
 
-# with app.app_context():
-#     db.create_all()
+# Create upload folder only when running locally
+if __name__ == "__main__":
+    os.makedirs(
+        app.config["UPLOAD_FOLDER"],
+        exist_ok=True
+    )
 
+    with app.app_context():
+        db.create_all()
+
+# --------------------------------------------------
+# Upload Settings
+# --------------------------------------------------
 
 ALLOWED_EXTENSIONS = {
     "png",
@@ -51,16 +57,24 @@ def allowed_file(filename):
 
     return (
         "." in filename
-        and filename.rsplit(".",1)[1].lower()
+        and filename.rsplit(".", 1)[1].lower()
         in ALLOWED_EXTENSIONS
     )
+
+
+# --------------------------------------------------
+# Dashboard
+# --------------------------------------------------
 
 @app.route("/")
 def dashboard():
 
-    companies = Company.query.order_by(
-        Company.created_at.desc()
-    ).limit(10).all()
+    companies = (
+        Company.query
+        .order_by(Company.created_at.desc())
+        .limit(10)
+        .all()
+    )
 
     stats = {
 
@@ -73,24 +87,24 @@ def dashboard():
         "photos": Photo.query.count(),
 
         "favorites":
-        Company.query.filter_by(
-            favorite=True
-        ).count(),
+            Company.query.filter_by(
+                favorite=True
+            ).count(),
 
         "high":
-        Company.query.filter_by(
-            priority="High"
-        ).count(),
+            Company.query.filter_by(
+                priority="High"
+            ).count(),
 
         "medium":
-        Company.query.filter_by(
-            priority="Medium"
-        ).count(),
+            Company.query.filter_by(
+                priority="Medium"
+            ).count(),
 
         "low":
-        Company.query.filter_by(
-            priority="Low"
-        ).count()
+            Company.query.filter_by(
+                priority="Low"
+            ).count()
 
     }
 
@@ -100,10 +114,17 @@ def dashboard():
         stats=stats
     )
 
+# --------------------------------------------------
+# Companies
+# --------------------------------------------------
+
 @app.route("/companies")
 def companies():
 
-    search = request.args.get("search", "").strip()
+    search = request.args.get(
+        "search",
+        ""
+    ).strip()
 
     query = Company.query
 
@@ -111,15 +132,32 @@ def companies():
 
         query = query.filter(
 
-            (Company.company_name.contains(search)) |
+            (Company.company_name.contains(search))
 
-            (Company.category.contains(search)) |
+            |
 
-            (Company.contact_person.contains(search)) |
+            (Company.category.contains(search))
 
-            (Company.tags.is_not(None) & Company.tags.contains(search)) |
+            |
 
-            (Company.website.is_not(None) & Company.website.contains(search))
+            (Company.contact_person.contains(search))
+
+            |
+
+            (
+                Company.tags.is_not(None)
+                &
+                Company.tags.contains(search)
+            )
+
+            |
+
+            (
+                Company.website.is_not(None)
+                &
+                Company.website.contains(search)
+            )
+
         )
 
     companies = query.order_by(
@@ -132,26 +170,25 @@ def companies():
         search=search
     )
 
+
 @app.route("/company/<int:id>")
 def company(id):
 
     company = Company.query.get_or_404(id)
 
     return render_template(
-
         "company.html",
-
         company=company
-
     )
+
 
 @app.route(
     "/add-company",
-    methods=["GET","POST"]
+    methods=["GET", "POST"]
 )
 def add_company():
 
-    if request.method=="POST":
+    if request.method == "POST":
 
         company = Company(
 
@@ -196,12 +233,10 @@ def add_company():
             ),
 
             rating=int(
-
                 request.form.get(
                     "rating",
                     3
                 )
-
             ),
 
             priority=request.form.get(
@@ -218,141 +253,193 @@ def add_company():
                 "tags"
             ),
 
-            gst_number=request.form.get("gst_number"),
+            gst_number=request.form.get(
+                "gst_number"
+            ),
 
-            company_type=request.form.get("company_type"),
+            company_type=request.form.get(
+                "company_type"
+            ),
 
-            country=request.form.get("country"),
+            country=request.form.get(
+                "country"
+            ),
 
-            state=request.form.get("state"),
+            state=request.form.get(
+                "state"
+            ),
 
-            city=request.form.get("city"),
+            city=request.form.get(
+                "city"
+            ),
 
-            postal_code=request.form.get("postal_code"),
+            postal_code=request.form.get(
+                "postal_code"
+            ),
 
-            linkedin=request.form.get("linkedin"),
+            linkedin=request.form.get(
+                "linkedin"
+            ),
 
-            facebook=request.form.get("facebook"),
+            facebook=request.form.get(
+                "facebook"
+            ),
 
-            instagram=request.form.get("instagram"),
+            instagram=request.form.get(
+                "instagram"
+            ),
 
             employee_count=int(
-                request.form.get("employee_count") or 0
-            ),
+                request.form.get(
+                    "employee_count"
+                ) or 0
+            )
 
         )
 
         try:
+
             db.session.add(company)
             db.session.commit()
-        except Exception:
+
+            flash(
+                "Company Added Successfully",
+                "success"
+            )
+
+            return redirect(
+                url_for("companies")
+            )
+
+        except Exception as e:
+
             db.session.rollback()
-            flash("Unable to save company.", "danger")
-            
-        flash(
 
-            "Company Added Successfully",
-
-            "success"
-
-        )
-
-        return redirect(
-
-            url_for("companies")
-
-        )
+            flash(
+                f"Error: {e}",
+                "danger"
+            )
 
     return render_template(
-
         "add_company.html"
-
     )
 
+# --------------------------------------------------
+# Edit Company
+# --------------------------------------------------
+
 @app.route(
-"/edit-company/<int:id>",
-methods=["GET","POST"]
+    "/edit-company/<int:id>",
+    methods=["GET", "POST"]
 )
 def edit_company(id):
 
-    company=Company.query.get_or_404(id)
+    company = Company.query.get_or_404(id)
 
-    if request.method=="POST":
+    if request.method == "POST":
 
-        company.company_name=request.form.get("company_name")
-        company.booth_number=request.form.get("booth_number")
-        company.category=request.form.get("category")
-        company.contact_person=request.form.get("contact_person")
-        company.phone=request.form.get("phone")
-        company.whatsapp=request.form.get("whatsapp")
-        company.email=request.form.get("email")
-        company.website=request.form.get("website")
-        company.address=request.form.get("address")
-        company.notes=request.form.get("notes")
-        company.gst_number=request.form.get("gst_number")
-        company.company_type=request.form.get("company_type")
-        company.country=request.form.get("country")
-        company.state=request.form.get("state")
-        company.city=request.form.get("city")
-        company.postal_code=request.form.get("postal_code")
-        company.linkedin=request.form.get("linkedin")
-        company.facebook=request.form.get("facebook")
-        company.instagram=request.form.get("instagram")
+        company.company_name = request.form.get("company_name")
+        company.booth_number = request.form.get("booth_number")
+        company.category = request.form.get("category")
+        company.contact_person = request.form.get("contact_person")
+        company.phone = request.form.get("phone")
+        company.whatsapp = request.form.get("whatsapp")
+        company.email = request.form.get("email")
+        company.website = request.form.get("website")
+        company.address = request.form.get("address")
+        company.notes = request.form.get("notes")
+
+        company.gst_number = request.form.get("gst_number")
+        company.company_type = request.form.get("company_type")
+        company.country = request.form.get("country")
+        company.state = request.form.get("state")
+        company.city = request.form.get("city")
+        company.postal_code = request.form.get("postal_code")
+
+        company.linkedin = request.form.get("linkedin")
+        company.facebook = request.form.get("facebook")
+        company.instagram = request.form.get("instagram")
+
         company.employee_count = int(
             request.form.get("employee_count") or 0
         )
-        company.rating=int(
-            request.form.get("rating",3)
+
+        company.rating = int(
+            request.form.get("rating", 3)
         )
 
-        company.priority=request.form.get("priority")
-
-        company.followup=request.form.get("followup")
-
+        company.priority = request.form.get("priority")
+        company.followup = request.form.get("followup")
         company.favorite = "favorite" in request.form
+        company.tags = request.form.get("tags")
 
-        company.tags=request.form.get("tags")
+        try:
 
-        db.session.commit()
+            db.session.commit()
 
-        flash(
-            "Company Updated",
-            "success"
-        )
-
-        return redirect(
-            url_for(
-                "company",
-                id=id
+            flash(
+                "Company Updated Successfully",
+                "success"
             )
-        )
+
+            return redirect(
+                url_for(
+                    "company",
+                    id=id
+                )
+            )
+
+        except Exception as e:
+
+            db.session.rollback()
+
+            flash(
+                f"Error: {e}",
+                "danger"
+            )
 
     return render_template(
         "edit_company.html",
         company=company
     )
 
+
+# --------------------------------------------------
+# Delete Company
+# --------------------------------------------------
+
 @app.route("/delete-company/<int:id>")
 def delete_company(id):
 
-    company=Company.query.get_or_404(id)
+    company = Company.query.get_or_404(id)
 
-    db.session.delete(company)
+    try:
 
-    db.session.commit()
+        db.session.delete(company)
+        db.session.commit()
 
-    flash(
-        "Company Deleted",
-        "danger"
-    )
+        flash(
+            "Company Deleted Successfully",
+            "success"
+        )
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        flash(
+            f"Error: {e}",
+            "danger"
+        )
 
     return redirect(
         url_for("companies")
     )
 
-# -----------------------------
+
+# --------------------------------------------------
 # Products
-# -----------------------------
+# --------------------------------------------------
 
 @app.route("/products")
 def products():
@@ -369,7 +456,7 @@ def products():
 
 @app.route(
     "/company/<int:id>/add-product",
-    methods=["GET","POST"]
+    methods=["GET", "POST"]
 )
 def add_product(id):
 
@@ -381,37 +468,67 @@ def add_product(id):
 
             company_id=id,
 
-            product_name=request.form.get("product_name"),
+            product_name=request.form.get(
+                "product_name"
+            ),
 
-            product_category=request.form.get("product_category"),
+            product_category=request.form.get(
+                "product_category"
+            ),
 
             wholesale_price=float(
-                request.form.get("wholesale_price") or 0
+                request.form.get(
+                    "wholesale_price"
+                ) or 0
             ),
 
             retail_price=float(
-                request.form.get("retail_price") or 0
+                request.form.get(
+                    "retail_price"
+                ) or 0
             ),
 
             moq=int(
-                request.form.get("moq") or 0
+                request.form.get(
+                    "moq"
+                ) or 0
             ),
 
-            material=request.form.get("material"),
+            material=request.form.get(
+                "material"
+            ),
 
-            description=request.form.get("description")
+            description=request.form.get(
+                "description"
+            )
 
         )
 
-        db.session.add(product)
+        try:
 
-        db.session.commit()
+            db.session.add(product)
+            db.session.commit()
 
-        flash("Product Added","success")
+            flash(
+                "Product Added Successfully",
+                "success"
+            )
 
-        return redirect(
-            url_for("company",id=id)
-        )
+            return redirect(
+                url_for(
+                    "company",
+                    id=id
+                )
+            )
+
+        except Exception as e:
+
+            db.session.rollback()
+
+            flash(
+                f"Error: {e}",
+                "danger"
+            )
 
     return render_template(
         "add_product.html",
@@ -426,11 +543,24 @@ def delete_product(id):
 
     company_id = product.company_id
 
-    db.session.delete(product)
+    try:
 
-    db.session.commit()
+        db.session.delete(product)
+        db.session.commit()
 
-    flash("Product Deleted","danger")
+        flash(
+            "Product Deleted",
+            "success"
+        )
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        flash(
+            f"Error: {e}",
+            "danger"
+        )
 
     return redirect(
         url_for(
@@ -439,9 +569,10 @@ def delete_product(id):
         )
     )
 
-# -----------------------------
+
+# --------------------------------------------------
 # Contacts
-# -----------------------------
+# --------------------------------------------------
 
 @app.route("/contacts")
 def contacts():
@@ -457,14 +588,14 @@ def contacts():
 
 
 @app.route(
-"/company/<int:id>/add-contact",
-methods=["GET","POST"]
+    "/company/<int:id>/add-contact",
+    methods=["GET", "POST"]
 )
 def add_contact(id):
 
     company = Company.query.get_or_404(id)
 
-    if request.method=="POST":
+    if request.method == "POST":
 
         contact = Contact(
 
@@ -472,7 +603,9 @@ def add_contact(id):
 
             name=request.form.get("name"),
 
-            designation=request.form.get("designation"),
+            designation=request.form.get(
+                "designation"
+            ),
 
             phone=request.form.get("phone"),
 
@@ -480,21 +613,31 @@ def add_contact(id):
 
         )
 
-        db.session.add(contact)
+        try:
 
-        db.session.commit()
+            db.session.add(contact)
+            db.session.commit()
 
-        flash(
-            "Contact Added",
-            "success"
-        )
-
-        return redirect(
-            url_for(
-                "company",
-                id=id
+            flash(
+                "Contact Added Successfully",
+                "success"
             )
-        )
+
+            return redirect(
+                url_for(
+                    "company",
+                    id=id
+                )
+            )
+
+        except Exception as e:
+
+            db.session.rollback()
+
+            flash(
+                f"Error: {e}",
+                "danger"
+            )
 
     return render_template(
         "add_contact.html",
@@ -509,14 +652,24 @@ def delete_contact(id):
 
     company_id = contact.company_id
 
-    db.session.delete(contact)
+    try:
 
-    db.session.commit()
+        db.session.delete(contact)
+        db.session.commit()
 
-    flash(
-        "Contact Deleted",
-        "danger"
-    )
+        flash(
+            "Contact Deleted",
+            "success"
+        )
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        flash(
+            f"Error: {e}",
+            "danger"
+        )
 
     return redirect(
         url_for(
@@ -525,9 +678,9 @@ def delete_contact(id):
         )
     )
 
-# -----------------------------
+# --------------------------------------------------
 # Gallery
-# -----------------------------
+# --------------------------------------------------
 
 @app.route("/gallery")
 def gallery():
@@ -543,68 +696,65 @@ def gallery():
 
 
 @app.route(
-"/company/<int:id>/upload-photo",
-methods=["GET","POST"]
+    "/company/<int:id>/upload-photo",
+    methods=["GET", "POST"]
 )
 def upload_photo(id):
 
     company = Company.query.get_or_404(id)
 
-    if request.method=="POST":
+    if request.method == "POST":
 
         file = request.files.get("image")
 
-        if file.filename == "":
-            flash("Please select a file.", "warning")
+        if not file or file.filename == "":
+            flash(
+                "Please select an image.",
+                "warning"
+            )
             return redirect(request.url)
 
-        if not file:
-
+        if not allowed_file(file.filename):
             flash(
-                "No File Selected",
+                "Invalid image format.",
                 "danger"
             )
-
             return redirect(request.url)
 
-        if allowed_file(file.filename):
+        upload_folder = app.config["UPLOAD_FOLDER"]
 
-            filename = (
-                str(uuid.uuid4())
-                + "_"
-                + secure_filename(file.filename)
-            )
+        os.makedirs(
+            upload_folder,
+            exist_ok=True
+        )
 
-            file.save(
+        filename = (
+            f"{uuid.uuid4()}_"
+            f"{secure_filename(file.filename)}"
+        )
 
-                os.path.join(
+        filepath = os.path.join(
+            upload_folder,
+            filename
+        )
 
-                    app.config["UPLOAD_FOLDER"],
+        try:
 
-                    filename
-
-                )
-
-            )
+            file.save(filepath)
 
             photo = Photo(
-
                 company_id=id,
-
                 image=filename,
-
                 image_type=request.form.get(
                     "image_type"
                 )
-
             )
 
             db.session.add(photo)
-
             db.session.commit()
 
             flash(
-                "Photo Uploaded",
+                "Photo Uploaded Successfully",
                 "success"
             )
 
@@ -615,12 +765,14 @@ def upload_photo(id):
                 )
             )
 
-        flash(
-            "Invalid File",
-            "danger"
-        )
+        except Exception as e:
 
-        return redirect(request.url)
+            db.session.rollback()
+
+            flash(
+                f"Upload failed: {e}",
+                "danger"
+            )
 
     return render_template(
         "upload_photo.html",
@@ -635,28 +787,37 @@ def delete_photo(id):
 
     company_id = photo.company_id
 
-    path = os.path.join(
-
-        app.config["UPLOAD_FOLDER"],
-
-        photo.image
-
-    )
-
     try:
-        if os.path.exists(path):
-           os.remove(path)
-    except OSError:
+
+        filepath = os.path.join(
+            app.config["UPLOAD_FOLDER"],
+            photo.image
+        )
+
+        if os.path.exists(filepath):
+            os.remove(filepath)
+
+    except Exception:
         pass
 
-    db.session.delete(photo)
+    try:
 
-    db.session.commit()
+        db.session.delete(photo)
+        db.session.commit()
 
-    flash(
-        "Photo Deleted",
-        "danger"
-    )
+        flash(
+            "Photo Deleted Successfully",
+            "success"
+        )
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        flash(
+            f"Error: {e}",
+            "danger"
+        )
 
     return redirect(
         url_for(
@@ -665,6 +826,11 @@ def delete_photo(id):
         )
     )
 
+
+# --------------------------------------------------
+# Settings
+# --------------------------------------------------
+
 @app.route("/settings")
 def settings():
 
@@ -672,12 +838,18 @@ def settings():
         "settings.html"
     )
 
+
+# --------------------------------------------------
+# Error Pages
+# --------------------------------------------------
+
 @app.errorhandler(404)
 def page_not_found(error):
 
-    return render_template(
-        "404.html"
-    ),404
+    return (
+        render_template("404.html"),
+        404
+    )
 
 
 @app.errorhandler(500)
@@ -685,10 +857,19 @@ def internal_error(error):
 
     db.session.rollback()
 
-    return render_template(
-        "500.html"
-    ),500
+    return (
+        render_template("500.html"),
+        500
+    )
 
+
+# --------------------------------------------------
+# Entry Point
+# --------------------------------------------------
 
 if __name__ == "__main__":
-    app.run()
+    app.run(
+        host="0.0.0.0",
+        port=5000,
+        debug=False
+    )
