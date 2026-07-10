@@ -66,53 +66,57 @@ def allowed_file(filename):
 # Dashboard
 # --------------------------------------------------
 
+# @app.route("/")
+# def dashboard():
+
+#     companies = (
+#         Company.query
+#         .order_by(Company.created_at.desc())
+#         .limit(10)
+#         .all()
+#     )
+
+#     stats = {
+
+#         "companies": Company.query.count(),
+
+#         "products": Product.query.count(),
+
+#         "contacts": Contact.query.count(),
+
+#         "photos": Photo.query.count(),
+
+#         "favorites":
+#             Company.query.filter_by(
+#                 favorite=True
+#             ).count(),
+
+#         "high":
+#             Company.query.filter_by(
+#                 priority="High"
+#             ).count(),
+
+#         "medium":
+#             Company.query.filter_by(
+#                 priority="Medium"
+#             ).count(),
+
+#         "low":
+#             Company.query.filter_by(
+#                 priority="Low"
+#             ).count()
+
+#     }
+
+#     return render_template(
+#         "dashboard.html",
+#         companies=companies,
+#         stats=stats
+#     )
+
 @app.route("/")
 def dashboard():
-
-    companies = (
-        Company.query
-        .order_by(Company.created_at.desc())
-        .limit(10)
-        .all()
-    )
-
-    stats = {
-
-        "companies": Company.query.count(),
-
-        "products": Product.query.count(),
-
-        "contacts": Contact.query.count(),
-
-        "photos": Photo.query.count(),
-
-        "favorites":
-            Company.query.filter_by(
-                favorite=True
-            ).count(),
-
-        "high":
-            Company.query.filter_by(
-                priority="High"
-            ).count(),
-
-        "medium":
-            Company.query.filter_by(
-                priority="Medium"
-            ).count(),
-
-        "low":
-            Company.query.filter_by(
-                priority="Low"
-            ).count()
-
-    }
-
-    return render_template(
-        "dashboard.html",
-        companies=companies,
-        stats=stats
-    )
+    return "<h1>ExpoNote CRM is working!</h1>"
 
 # --------------------------------------------------
 # Companies
