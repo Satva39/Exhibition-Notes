@@ -4,12 +4,8 @@ from flask import (
     request,
     redirect,
     url_for,
-    flash,
-    send_file
+    flash
 )
-
-import pandas as pd
-from io import BytesIO
 
 import os
 import uuid
@@ -895,59 +891,6 @@ def internal_error(error):
         500
     )
 
-
-@app.route("/export-excel")
-def export_excel():
-
-    companies = Company.query.all()
-
-    data = []
-
-    for company in companies:
-
-        data.append({
-            "Company Name": company.company_name,
-            "Category": company.category,
-            "Contact Person": company.contact_person,
-            "Email": company.email,
-            "Phone": company.phone,
-            "Website": company.website,
-            "Priority": company.priority,
-            "Favorite": "Yes" if company.favorite else "No",
-            "Tags": company.tags,
-            "Address": company.address,
-            "Notes": company.notes,
-            "Created": company.created_at
-        })
-
-    df = pd.DataFrame(data)
-
-    output = BytesIO()
-
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(
-            writer,
-            index=False,
-            sheet_name="Companies"
-        )
-
-        worksheet = writer.sheets["Companies"]
-
-        for column in worksheet.columns:
-            length = max(
-                len(str(cell.value)) if cell.value else 0
-                for cell in column
-            )
-            worksheet.column_dimensions[column[0].column_letter].width = length + 5
-
-    output.seek(0)
-
-    return send_file(
-        output,
-        as_attachment=True,
-        download_name="ExpoNote_Companies.xlsx",
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
 
 # --------------------------------------------------
 # Entry Point
