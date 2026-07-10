@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>
+
+    Upload Photo
+
+</h2>
+
+<h5>
+
+    {{ company.company_name }}
+
+</h5>
+
+<form method="POST" enctype="multipart/form-data">
+
+    <div class="mb-3">
+
+        <label>
+
+            Photo Type
+
+        </label>
+
+        <select name="image_type" class="form-select">
+
+            <option>
+
+                Company Logo
+
+            </option>
+
+            <option>
+
+                Business Card
+
+            </option>
+
+            <option>
+
+                Booth
+
+            </option>
+
+            <option>
+
+                Product
+
+            </option>
+
+            <option>
+
+                Catalog
+
+            </option>
+
+        </select>
+
+    </div>
+
+    <div class="mb-3">
+
+        <input type="file" name="image" class="form-control" accept="image/*" required>
+
+    </div>
+
+    <button class="btn btn-primary">
+
+        Upload
+
+    </button>
+
+</form>
+
+{% endblock %}

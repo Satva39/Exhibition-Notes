@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+
+{% block page_title %}
+Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Welcome -->
+
+    <div class="mb-4">
+
+        <h2 class="fw-bold">
+
+            Dashboard
+
+        </h2>
+
+        <p class="text-muted">
+
+            Welcome back! Here's what's happening in your Expo CRM.
+
+        </p>
+
+    </div>
+
+    <!-- Statistics -->
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card dashboard-card shadow-sm">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+
+                        Companies
+
+                    </small>
+
+                    <h1>
+
+                        {{ stats.companies }}
+
+                    </h1>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card dashboard-card shadow-sm">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+
+                        Products
+
+                    </small>
+
+                    <h1>
+
+                        {{ stats.products }}
+
+                    </h1>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card dashboard-card shadow-sm">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+
+                        Contacts
+
+                    </small>
+
+                    <h1>
+
+                        {{ stats.contacts }}
+
+                    </h1>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card dashboard-card shadow-sm">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+
+                        Photos
+
+                    </small>
+
+                    <h1>
+
+                        {{ stats.photos }}
+
+                    </h1>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Second Row -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- Priority -->
+
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <h5 class="mb-4">
+
+                        Priority Overview
+
+                    </h5>
+
+                    <div class="d-flex justify-content-between mb-3">
+
+                        <span>
+
+                            🔴 High
+
+                        </span>
+
+                        <strong>
+
+                            {{ stats.high }}
+
+                        </strong>
+
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3">
+
+                        <span>
+
+                            🟡 Medium
+
+                        </span>
+
+                        <strong>
+
+                            {{ stats.medium }}
+
+                        </strong>
+
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+
+                        <span>
+
+                            🟢 Low
+
+                        </span>
+
+                        <strong>
+
+                            {{ stats.low }}
+
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Favorites -->
+
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <h5>
+
+                        Favorite Companies
+
+                    </h5>
+
+                    <div class="display-4 my-3">
+
+                        ⭐
+
+                    </div>
+
+                    <h2>
+
+                        {{ stats.favorites }}
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Quick Actions -->
+
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <h5 class="mb-3">
+
+                        Quick Actions
+
+                    </h5>
+
+                    <div class="d-grid gap-2">
+
+                        <a href="/add-company" class="btn btn-primary">
+
+                            Add Company
+
+                        </a>
+
+                        <a href="/companies" class="btn btn-outline-primary">
+
+                            View Companies
+
+                        </a>
+
+                        <a href="/gallery" class="btn btn-outline-secondary">
+
+                            Open Gallery
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Recent Companies -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+
+                    Recently Added Companies
+
+                </h5>
+
+                <a href="/companies" class="btn btn-sm btn-primary">
+
+                    View All
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            {% if companies %}
+
+            <div class="table-responsive">
+
+                <table class="table align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Company</th>
+
+                            <th>Category</th>
+
+                            <th>Contact</th>
+
+                            <th>Priority</th>
+
+                            <th></th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for company in companies %}
+
+                        <tr>
+
+                            <td>
+
+                                <strong>
+
+                                    {{ company.company_name }}
+
+                                </strong>
+
+                            </td>
+
+                            <td>
+
+                                {{ company.category }}
+
+                            </td>
+
+                            <td>
+
+                                {{ company.contact_person }}
+
+                            </td>
+
+                            <td>
+
+                                {% if company.priority=="High" %}
+
+                                <span class="badge bg-danger">
+
+                                    High
+
+                                </span>
+
+                                {% elif company.priority=="Medium" %}
+
+                                <span class="badge bg-warning text-dark">
+
+                                    Medium
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-success">
+
+                                    Low
+
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                <a href="/company/{{ company.id }}" class="btn btn-sm btn-primary">
+
+                                    Open
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% else %}
+
+            <div class="text-center py-5">
+
+                <i class="fa-solid fa-building display-1 text-secondary"></i>
+
+                <h3 class="mt-4">
+
+                    No Companies Yet
+
+                </h3>
+
+                <p class="text-muted">
+
+                    Start by adding your first company.
+
+                </p>
+
+                <a href="/add-company" class="btn btn-primary">
+
+                    Add Company
+
+                </a>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
