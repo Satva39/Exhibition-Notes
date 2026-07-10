@@ -119,21 +119,30 @@ def allowed_file(filename):
 
 @app.route("/")
 def dashboard():
-    return render_template(
-        "dashboard.html",
-        companies=[],
-        stats={
-            "companies": 0,
-            "products": 0,
-            "contacts": 0,
-            "photos": 0,
-            "favorites": 0,
-            "high": 0,
-            "medium": 0,
-            "low": 0
-        }
+
+    companies = (
+        Company.query
+        .order_by(Company.created_at.desc())
+        .limit(10)
+        .all()
     )
 
+    stats = {
+        "companies": Company.query.count(),
+        "products": Product.query.count(),
+        "contacts": Contact.query.count(),
+        "photos": Photo.query.count(),
+        "favorites": Company.query.filter_by(favorite=True).count(),
+        "high": Company.query.filter_by(priority="High").count(),
+        "medium": Company.query.filter_by(priority="Medium").count(),
+        "low": Company.query.filter_by(priority="Low").count(),
+    }
+
+    return render_template(
+        "dashboard.html",
+        companies=companies,
+        stats=stats
+    )
 # --------------------------------------------------
 # Companies
 # --------------------------------------------------
