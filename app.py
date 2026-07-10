@@ -116,7 +116,20 @@ def allowed_file(filename):
 
 @app.route("/")
 def dashboard():
-    return "<h1>ExpoNote CRM is working!</h1>"
+    return render_template(
+        "dashboard.html",
+        companies=[],
+        stats={
+            "companies": 0,
+            "products": 0,
+            "contacts": 0,
+            "photos": 0,
+            "favorites": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0
+        }
+    )
 
 # --------------------------------------------------
 # Companies
