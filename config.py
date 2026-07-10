@@ -6,10 +6,7 @@ class Config:
 
     SECRET_KEY = "ChangeThisToASecureRandomKey"
 
-    SQLALCHEMY_DATABASE_URI = (
-        "sqlite:///" +
-        os.path.join(BASE_DIR, "database", "expo.db")
-    )
+    SQLALCHEMY_DATABASE_URI = os.environ["DATABASE_URL"]
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
