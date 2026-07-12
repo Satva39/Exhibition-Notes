@@ -4,8 +4,12 @@ from flask import (
     request,
     redirect,
     url_for,
-    flash
+    flash,
+    send_file
 )
+
+from openpyxl import Workbook
+from io import BytesIO
 
 import os
 import uuid
@@ -482,6 +486,93 @@ def products():
         products=products
     )
 
+@app.route("/export-excel")
+def export_excel():
+
+    companies = Company.query.order_by(Company.company_name).all()
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Companies"
+
+    ws.append([
+        "ID",
+        "Company Name",
+        "Booth Number",
+        "Category",
+        "Contact Person",
+        "Phone",
+        "WhatsApp",
+        "Email",
+        "Website",
+        "Address",
+        "Notes",
+        "Rating",
+        "Priority",
+        "Follow Up",
+        "Favorite",
+        "Tags",
+        "GST Number",
+        "Company Type",
+        "Country",
+        "State",
+        "City",
+        "Postal Code",
+        "LinkedIn",
+        "Facebook",
+        "Instagram",
+        "Employees",
+        "Annual Revenue",
+        "Meeting Status",
+        "Company Score",
+        "Created At"
+    ])
+
+    for company in companies:
+
+        ws.append([
+            company.id,
+            company.company_name,
+            company.booth_number,
+            company.category,
+            company.contact_person,
+            company.phone,
+            company.whatsapp,
+            company.email,
+            company.website,
+            company.address,
+            company.notes,
+            company.rating,
+            company.priority,
+            company.followup,
+            "Yes" if company.favorite else "No",
+            company.tags,
+            company.gst_number,
+            company.company_type,
+            company.country,
+            company.state,
+            company.city,
+            company.postal_code,
+            company.linkedin,
+            company.facebook,
+            company.instagram,
+            company.employee_count,
+            company.annual_revenue,
+            company.meeting_status,
+            company.company_score,
+            company.created_at.strftime("%d-%m-%Y %H:%M") if company.created_at else ""
+        ])
+
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name="Companies.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 @app.route(
     "/company/<int:id>/add-product",
