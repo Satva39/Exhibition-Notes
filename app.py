@@ -34,15 +34,18 @@ app.config.from_object(Config)
 
 db.init_app(app)
 
-# Always create the uploads folder
-os.makedirs(
-    app.config["UPLOAD_FOLDER"],
-    exist_ok=True
-)
-
-# Create database tables
 with app.app_context():
     db.create_all()
+
+# Create upload folder only when running locally
+if __name__ == "__main__":
+    os.makedirs(
+        app.config["UPLOAD_FOLDER"],
+        exist_ok=True
+    )
+
+    with app.app_context():
+        db.create_all()
 
 # --------------------------------------------------
 # Upload Settings
@@ -859,15 +862,6 @@ def upload_photo(id):
 
             file.save(filepath)
 
-            print("=" * 50)
-            print("UPLOAD FOLDER :", upload_folder)
-            print("FILE PATH     :", filepath)
-            print("FILE EXISTS   :", os.path.exists(filepath))
-            print("=" * 50)
-
-            print("Saved Image:", filepath)
-            print("Exists:", os.path.exists(filepath))
-
             photo = Photo(
                 company_id=id,
                 image=filename,
@@ -875,12 +869,9 @@ def upload_photo(id):
                     "image_type"
                 )
             )
-            print(filename)
 
             db.session.add(photo)
             db.session.commit()
-            print(Photo.query.count())
-            print("PHOTO SAVED TO DATABASE")
 
             flash(
                 "Photo Uploaded Successfully",
