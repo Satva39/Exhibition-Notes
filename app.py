@@ -25,6 +25,10 @@ from models import (
     Photo
 )
 
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
 # --------------------------------------------------
 # App Configuration
 # --------------------------------------------------
@@ -841,33 +845,35 @@ def upload_photo(id):
             )
             return redirect(request.url)
 
-        upload_folder = app.config["UPLOAD_FOLDER"]
+        # upload_folder = app.config["UPLOAD_FOLDER"]
 
-        os.makedirs(
-            upload_folder,
-            exist_ok=True
-        )
+        # os.makedirs(
+        #     upload_folder,
+        #     exist_ok=True
+        # )
 
-        filename = (
-            f"{uuid.uuid4()}_"
-            f"{secure_filename(file.filename)}"
-        )
+        # filename = (
+        #     f"{uuid.uuid4()}_"
+        #     f"{secure_filename(file.filename)}"
+        # )
 
-        filepath = os.path.join(
-            upload_folder,
-            filename
-        )
+        # filepath = os.path.join(
+        #     upload_folder,
+        #     filename
+        # )
 
         try:
 
-            file.save(filepath)
+            result = cloudinary.uploader.upload(
+                file,
+                folder="expo-note"
+            )
 
             photo = Photo(
                 company_id=id,
-                image=filename,
-                image_type=request.form.get(
-                    "image_type"
-                )
+                image=result["secure_url"],
+                public_id=result["public_id"],
+                image_type=request.form.get("image_type")
             )
 
             db.session.add(photo)
@@ -908,15 +914,7 @@ def delete_photo(id):
     company_id = photo.company_id
 
     try:
-
-        filepath = os.path.join(
-            app.config["UPLOAD_FOLDER"],
-            photo.image
-        )
-
-        if os.path.exists(filepath):
-            os.remove(filepath)
-
+        cloudinary.uploader.destroy(photo.public_id)
     except Exception:
         pass
 

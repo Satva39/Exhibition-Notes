@@ -1,5 +1,14 @@
 import os
 
+import cloudinary
+
+cloudinary.config(
+    cloud_name="olrnljeq",
+    api_key="131355548499872",
+    api_secret="dsEl-2FNZe2fR3du8TRIlXtTmSM",
+    secure=True
+)
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:

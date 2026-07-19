@@ -150,6 +150,8 @@ class Photo(db.Model):
 
     image = db.Column(db.String(250))
 
+    public_id = db.Column(db.String(255))
+
     image_type = db.Column(db.String(50))
 
     uploaded_at = db.Column(
